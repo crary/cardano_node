@@ -36,7 +36,7 @@
         - libtool 
         - autoconf
         - net-tools
-          - chrony
+        - chrony
       state: present
 
   - name: Create 'wheel' group
