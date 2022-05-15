@@ -5,96 +5,108 @@
   hosts: cardano
   user: root
 
+  vars_files:
+    - cardano_vars.yml
+
   tasks:
 
-  - name: Update apt repo, cache, upgrade and enable unattended upgrades
-    apt: 
-      update_cache: yes
-      force_apt_get: yes 
-      cache_valid_time: 3600
-      upgrade: yes
+  # - name: Update apt repo, cache, upgrade and enable unattended upgrades
+  #   apt: 
+  #     update_cache: yes
+  #     force_apt_get: yes 
+  #     cache_valid_time: 3600
+  #     upgrade: yes
 
-  - name: Install required packages
-    apt:
-      pkg:
-        - git
-        - automake 
-        - build-essential 
-        - pkg-config 
-        - libffi-dev 
-        - libgmp-dev 
-        - libssl-dev 
-        - libtinfo-dev 
-        - libsystemd-dev 
-        - zlib1g-dev 
-        - make 
-        - g++ 
-        - tmux
-        - jq 
-        - wget 
-        - libncursesw5 
-        - libtool 
-        - autoconf
-        - net-tools
-        - chrony
-      state: present
+  # - name: Install required packages
+  #   apt:
+  #     pkg:
+  #       - git
+  #       - automake 
+  #       - build-essential 
+  #       - pkg-config 
+  #       - libffi-dev 
+  #       - libgmp-dev 
+  #       - libssl-dev 
+  #       - libtinfo-dev 
+  #       - libsystemd-dev 
+  #       - zlib1g-dev
+        # - libnuma-dev 
+  #       - make 
+  #       - g++ 
+  #       - tmux
+  #       - jq 
+  #       - wget 
+  #       - libncursesw5 
+  #       - libtool 
+  #       - autoconf
+  #       - net-tools
+  #       - chrony
+  #       - bc
+  #       - htop
+  #       - curl
+      # state: present
 
-  - name: Create 'wheel' group
-    group: 
-      name: wheel
-      state: present
+  # - name: Create 'wheel' group
+  #   group: 
+  #     name: wheel
+  #     state: present
 
-  - name: Allow 'wheel' group to have passwordless sudo
-    lineinfile:
-      dest: /etc/sudoers
-      state: present
-      regexp: '^%wheel'
-      line: '%wheel ALL=(ALL) NOPASSWD: ALL'
-      validate: 'visudo -cf %s'
+  # - name: Allow 'wheel' group to have passwordless sudo
+  #   lineinfile:
+  #     dest: /etc/sudoers
+  #     state: present
+  #     regexp: '^%wheel'
+  #     line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+  #     validate: 'visudo -cf %s'
 
-  - name: Add Cardano user
-    ansible.builtin.user:
-      name: cardano
-      state: present
-      groups: wheel
-      shell: /bin/bash
-      generate_ssh_key: yes
-      ssh_key_bits: 2048
-      ssh_key_file: .ssh/id_rsa
-
-  - name: Enable UFW and allow logging
-    ufw:
-      state: enabled
-      logging: on
-
-  - name: Disable ports 300, 9100, 12798
-    ufw:    
-      rule: deny
-      proto: tcp
-      #direction: incoming
-      port: '{{ item }}'
-    with_items:
-      - 3000
-      - 9100
-      - 12798
-
-  - name: Allow port 22 and 6000
-    ufw:
-      proto: tcp
-      rule: allow
-      port: '{{ item }}'
-    with_items:
-      - 22
-      - 6000
+  # - name: Add Cardano user
+  #   ansible.builtin.user:
+  #     name: cardano
+  #     state: present
+  #     groups: wheel
+  #     shell: /bin/bash
+  #     generate_ssh_key: yes
+  #     ssh_key_bits: 2048
+  #     ssh_key_file: .ssh/id_rsa
   
-  - name: verify listening ports
-    shell: /bin/netstat -tulpn
-    register: 
-      netstat_result
+  # - name: change private key permissions
+  #   ansible.builtin.file:
+  #     path: /home/cardano/.ssh/id_rsa
+  #     mode: '400'
 
-  - name: List TCP/UDP ports listenting
-    debug:
-      msg: "For ports: {{ netstat_result.stdout }}"
+  # - name: Enable UFW and allow logging
+  #   ufw:
+  #     state: enabled
+  #     logging: on
+
+  # - name: Disable ports 300, 9100, 12798
+  #   ufw:    
+  #     rule: deny
+  #     proto: tcp
+  #     #direction: incoming
+  #     port: '{{ item }}'
+  #   with_items:
+  #     - 3000
+  #     - 9100
+  #     - 12798
+
+  # - name: Allow port 22 and 6000
+  #   ufw:
+  #     proto: tcp
+  #     rule: allow
+  #     port: '{{ item }}'
+  #   with_items:
+  #     - 22
+  #     - 6000
+  
+  # - name: verify listening ports
+  #   shell: /bin/netstat -tulpn
+  #   register: 
+  #     netstat_result
+
+  # - name: List TCP/UDP ports listenting
+  #   debug:
+  #     msg: "For ports: {{ netstat_result.stdout }}"
  
 
   # - name: Deny all IPv6 traffic
@@ -102,7 +114,51 @@
   #     proto: ipv6
   #     rule: deny
 
+  # - name: copy chrony.conf file
+  #   ansible.builtin.copy:
+  #     src: ~/Desktop/Ansible/cardano/cardano_node/config_files/chrony.conf
+  #     dest: /etc/chrony/
+  #     # owner: root
+  #     # group: root
+  #     # mode: '644'
 
+  # - name: Reload chrony service
+  #   ansible.builtin.service:
+  #     name: chronyd
+  #     state: restarted
+
+  # - name: Create git directory inside {{ home }}
+  #   ansible.builtin.file:
+  #     path: "{{ home }}/git"
+  #     state: directory
+
+  # - name: clone libsodium repository to {{ home }}/git/libsodium
+  #   ansible.builtin.git:
+  #     repo: 'https://github.com/input-output-hk/libsodium'
+  #     dest: "{{ home }}/git/libsodium"
+
+  # - name: Configure git and set HEAD
+  #   raw: "{{ item }}"
+  #   with_items:
+  #     - git config --global --add safe.directory /home/cardano/git/libsodium
+  #     - cd {{ home }}/git/libsodium; sudo git checkout 66f017f1
+
+  #     # - "make"
+  #     # - make install
+
+  - name: Compile and install libsodium
+    command: "{{ item }}"
+    with_items:
+      - ./autogen.sh
+      - ./configure
+      - make
+      - make install
+    args:
+      chdir: "{{home}}/git/libsodium"
+    register: libsodium_result
+
+  - debug: 
+      msg: "{{ libsodium_result }}"
 
 
 
